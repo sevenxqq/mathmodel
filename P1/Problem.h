@@ -10,11 +10,14 @@ using namespace std;
 */
 
 enum {
+	//地区类型
 	ORD = 0,//普通地点
 	SRC = 1,//起点
 	MINE = 2,//矿山
 	VIL=3,//村庄
 	DST = 4,//终点
+	//天气类型
+	sun=0,hypet=1,sand=2,
 };
 
 
@@ -25,7 +28,7 @@ struct graph {
 
 };
 
-
+struct Resource;
 
 struct Resource {
 	int money = 0;
@@ -33,6 +36,7 @@ struct Resource {
 	int food = 0;
 	Resource() {}
 	Resource(int x, int y, int z) : money(x), water(y), food(z) {}
+	// Resource(Resource tmp) : money(x), water(y), food(z) {}
 	//重载操作符
 	void operator + (Resource tmp) {
 		money += tmp.money;
@@ -44,13 +48,20 @@ struct Resource {
 		water -= tmp.water;
 		food -= tmp.food;
 	}
+	void operator = (Resource tmp) {
+		money = tmp.money;
+		water = tmp.water;
+		food = tmp.food;
+	}
+	
+
 };
 
 
 
 const int MAX_STEP = 30;//限制日期数
 const int MAX_SPOT = 50; //地图上最多的地点数
-
+const int MAXCOST = 2147483647;
 
 
 
@@ -69,9 +80,11 @@ public:
 		vector<graph>().swap(map);//释放vector内存空间
 	}
 	friend class TEST;
+	static vector <Resource> resource;
 	void construct_table();
 	void bfs_getDis();//计算其他点到终点的最短距离
-
+	void set1_dp(int weather[]);
+	void init(Resource dpmap[MAX_STEP+2][MAX_SPOT+3]);
 
 
 };

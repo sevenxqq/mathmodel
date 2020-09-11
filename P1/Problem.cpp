@@ -6,7 +6,14 @@ Resource hype(0, 8, 6);
 Resource sandstorm(0, 10, 10);
 Resource digmine(1000, 0, 0);
 
+
+
 void PROBLEM::construct_table() {
+	resource.push_back(sunny);
+	resource.push_back(hype);
+	resource.push_back(sandstorm);
+	resource.push_back(digmine);
+
 	graph blank;
 	map.push_back(blank);//地点从1开始标记,所以先push一个空的0
 
@@ -56,6 +63,41 @@ void PROBLEM::bfs_getDis() {
 		}
 	}
 
+
+}
+
+
+void PROBLEM::init(Resource dpmap[MAX_STEP+2][MAX_SPOT+3]) {
+	Resource initres(0, MAXCOST, MAXCOST);
+	for (int i = 0; i <= MAX_STEP; i++) {
+		for (int j = 0; j <= MAX_SPOT; j++) {
+			dpmap[i][j] = initres;
+		}
+	}
+}
+
+
+
+void PROBLEM::set1_dp(int weather[]) {
+	Resource dpmap[MAX_STEP][MAX_SPOT];//考虑最小消耗量,初始化为极大
+
+	for (int i = 1; i <= MAX_STEP; i++) {//第i步
+		for (int j = 0; j < map.size(); j++) {
+
+			for (auto neibor : map[i].neibors) {
+				//从邻居节点走过来
+				if (weather[i]!=sand)
+					Resource newres1 = dpmap[i - 1][neibor] + 2 * resource[weather[i]];
+				//挖矿
+
+				//村庄
+
+				//停留
+				Resource newres1 = dpmap[i - 1][j] + resource[weather[i]];//这里是拷贝？？？
+				
+			}
+		}
+	}
 
 }
 

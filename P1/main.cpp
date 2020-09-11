@@ -33,6 +33,7 @@ TEST::~TEST()
 
 int main() {
 
+
 	PROBLEM set1("SET1.txt");
 	set1.construct_table();
 	TEST smalltest;
