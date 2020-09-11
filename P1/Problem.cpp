@@ -7,12 +7,14 @@ Resource sandstorm(0, 10, 10);
 Resource digmine(1000, 0, 0);
 
 
-
+/*
+	从文件中读入并建图
+	attention; 不含dis
+*/
 void PROBLEM::construct_table() {
 	resource.push_back(sunny);
 	resource.push_back(hype);
 	resource.push_back(sandstorm);
-	resource.push_back(digmine);
 
 	graph blank;
 	map.push_back(blank);//地点从1开始标记,所以先push一个空的0
@@ -38,31 +40,35 @@ void PROBLEM::construct_table() {
 
 }
 
+/*
+	计算每个点到终点的最短距离
+*/
 void PROBLEM::bfs_getDis() {
 	int size = map.size();
-	bool *visited = new bool(size);
-	memset(visited, false, sizeof(visited));//检查这里对不对
+	bool *visited = new bool[size];
+	for (int i = 0; i < size; i++)
+		visited[i] = false;
 	visited[0] = true;
 	queue<int> que;
-	que.push(size - 1);//check:size-1是终点编号吗
-	int curdis = -1;
+	int destnum = size - 1;
+	que.push(destnum);//check:size-1是终点编号吗
+	map[destnum].dis = 0;
 	while (!que.empty())
 	{
 		int from = que.front();
 		visited[from] = true;
 		que.pop();
-		curdis++;
-		map[from].dis = curdis;
 		for (int i = 0; i < map[from].neibors.size(); i++) {
 			int neibor = map[from].neibors[i];
 			if (visited[neibor] == false) {
+				map[neibor].dis = map[from].dis + 1;
 				que.push(neibor);
 				visited[neibor] = true;
 			}
 
 		}
 	}
-
+	delete []visited;
 
 }
 
@@ -78,15 +84,20 @@ void PROBLEM::init(Resource dpmap[MAX_STEP+2][MAX_SPOT+2]) {
 	}
 }
 
-
-Resource mincmp(Resource a, Resource b) {//返回花销少的，已考虑赚的钱
+/* 
+	返回花销少的，已考虑赚的钱
+*/
+Resource mincmp(Resource a, Resource b) {
 	int money1 = a.water * waterpri + a.food *foodpri - a.money;
-	int money2 = b.water * waterpri - b.food *foodpri - b.money;
+	int money2 = b.water * waterpri + b.food *foodpri - b.money;
 	if (money1 < money2)
 		return a;
 	return b;
 }
 
+/*
+	第一题，动态规划(优化：带剪枝
+*/
 
 void PROBLEM::set1_dp(int weather[],int dest) {
 	Resource dpmap[MAX_STEP+2][MAX_SPOT+2];
@@ -95,9 +106,11 @@ void PROBLEM::set1_dp(int weather[],int dest) {
 		for (int j = 0; j < map.size(); j++) {//某个点
 
 			for (auto neibor : map[i].neibors) {//它的邻居节点
+				if (i + map[j].dis > MAX_STEP)//剪枝，在当前节点必须预留足够的时间到终点
+					break;
 				if (neibor != dest) {//到终点游戏结束，考虑特例，起点....---终点-矿山
 					//行走，从邻居节点走过来
-					if (weather[i] != sand) {
+					if (weather[i] != SAND) {
 						Resource newres1 = dpmap[i - 1][neibor] + resource[weather[i]] * 2;
 						dpmap[i][j] = mincmp(dpmap[i][j], newres1);
 					}

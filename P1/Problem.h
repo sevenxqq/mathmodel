@@ -17,7 +17,7 @@ enum {
 	VIL=3,//村庄
 	DST = 4,//终点
 	//天气类型
-	sun=0,hypet=1,sand=2,
+	SUNNY=0,HYPE=1,SAND=2,
 };
 
 
@@ -94,7 +94,7 @@ public:
 		vector<graph>().swap(map);//释放vector内存空间
 	}
 	friend class TEST;
-	static  vector <Resource> resource;
+    vector <Resource> resource;
 	void construct_table();
 	void bfs_getDis();//计算其他点到终点的最短距离
 	void set1_dp(int weather[],int dest);
