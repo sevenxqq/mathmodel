@@ -19,6 +19,14 @@ public:
 			cout << i << "¾àÀëÖÕµã:" << set.map[i].dis << endl;
 		}
 	}
+	/*void test_dpmap(PROBLEM set) {
+		for (int i = 1; i < MAX_STEP; i++) {
+			for (int j = 1; j < MAX_SPOT; j++) {
+				cout << dpmap[i][j] << "  ";
+			}
+			cout << endl;
+		}
+	}*/
 private:
 
 };

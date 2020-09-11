@@ -71,6 +71,11 @@ struct Resource {
 			return true;
 		return false;
 	}
+	bool operator < (Resource tmp) {
+		if ( water < tmp.water && food < tmp.food)
+			return true;
+		return false;
+	}
 	
 	
 };
@@ -106,8 +111,8 @@ public:
 	void construct_table();
 	void bfs_getDis();//计算其他点到终点的最短距离
 	int set1_dp(int weather[],int dest);
-	void init(Resource dpmap[MAX_STEP+2][MAX_SPOT+2]);
-	int getres_set1(Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2]);
+	void init();
+	int getres_set1();
 	void check_path(int day,int dest);
 
 };
