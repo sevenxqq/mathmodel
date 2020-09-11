@@ -33,7 +33,7 @@ TEST::~TEST()
 
 int main() {
 
-	//第一关的main
+	//第一题的main
 
 	PROBLEM set1("SET1.txt");
 	set1.construct_table();

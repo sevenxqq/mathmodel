@@ -7,7 +7,8 @@ Resource sandstorm(0, 10, 10);
 Resource digmine(1000, 0, 0);
 
 int supply[4];//水量，食物量，增加的容量，花费的钱币
-
+Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2];
+int Path[MAX_STEP+2][MAX_SPOT+2];
 /*
 	从文件中读入并建图
 	attention; 不含dis
@@ -81,6 +82,7 @@ void PROBLEM::init(Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2]) {
 	for (int i = 0; i <= MAX_STEP; i++) {
 		for (int j = 0; j <= MAX_SPOT; j++) {
 			dpmap[i][j] = initres;
+			Path[i][j] = 0;
 		}
 	}
 	dpmap[0][1].food = 0; dpmap[0][1].water = 0; dpmap[0][1].money = 0;
@@ -89,12 +91,15 @@ void PROBLEM::init(Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2]) {
 /*
 	返回花销少的，已考虑赚的钱
 */
-Resource mincmp(Resource a, Resource b) {
+bool mincmp(Resource a, Resource b,Resource & c) {
 	int money1 = a.water * waterpri + a.food *foodpri - a.money;
 	int money2 = b.water * waterpri + b.food *foodpri - b.money;
-	if (money1 < money2)
-		return a;
-	return b;
+	if (money1 <= money2) {
+		c = a;
+		return true;
+	}
+	c = b;
+	return false;
 }
 
 /*
@@ -102,55 +107,70 @@ Resource mincmp(Resource a, Resource b) {
 */
 
 int PROBLEM::set1_dp(int weather[], int dest) {
-	Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2];
+
 	init(dpmap);
 	
 	memset(supply, 0, sizeof(supply));
-	for (int i = 1; i <= MAX_STEP; i++) {//第i步
-		for (int j = 2; j < map.size(); j++) {//某个点
+	bool haschange = true;
+	while (haschange) {
+		haschange = false;
+		for (int i = 1; i <= MAX_STEP; i++) {//第i步
+			for (int j = 2; j < map.size(); j++) {//某个点
 
-			for (auto neibor : map[j].neibors) {//它的邻居节点
-				//TODO:计算i-30天有几天沙尘暴
-				if (i + map[j].dis > MAX_STEP)//剪枝，在当前节点必须预留足够的时间到终点
-					break;
-				if (neibor != dest) {//到终点游戏结束，考虑特例，起点....---终点-矿山
-					//行走，从邻居节点走过来
-					if (weather[i] != SAND) {
-						Resource newres1 = dpmap[i - 1][neibor] + resource[weather[i]] * 2;
-						if(newres1.water*watersz+newres1.food*foodsz < MAXPAC + supply[2])//保证背包装的下
-							dpmap[i][j] = mincmp(dpmap[i][j], newres1);
-					}
-					//cout << 123 << endl;
-	
-					//停留,分为停留下来挖矿，主动停留（在普通地点，或者在矿山但是不挖矿），以及沙尘暴被动停留,后面的可以合并
-					if (map[j].state == MINE && dpmap[i-1][j].food!=MAXCOST) {
-						Resource newres1 = dpmap[i - 1][j] + resource[weather[i]] * 3 + digmine;//停留此地挖矿
-						if (newres1.water*watersz + newres1.food*foodsz < MAXPAC + supply[2])//保证背包装的下
-							dpmap[i][j] = mincmp(dpmap[i][j], newres1);
-					}
-					Resource newres2 = dpmap[i - 1][j] + resource[weather[i]];//无挖矿的停留
-					if (newres2.water*watersz + newres2.food*foodsz < MAXPAC + supply[2])//保证背包装的下
-						dpmap[i][j] = mincmp(dpmap[i][j], newres2);
-					//cout << 134 << endl;
-					//村庄补给
-					if (map[j].state == VIL) {
-						int newpri = 2 * (waterpri * supply[0] + foodpri * supply[1]);
-						if (supply[0] == 0 || newpri < supply[3]) {//第一次经过村庄;否则挑选花费少的
-							supply[0] = dpmap[i][j].water; supply[1] = dpmap[i][j].food;
-							supply[2] = watersz * supply[0] + supply[1] * foodsz;
-							supply[3] = newpri;
+				for (auto neibor : map[j].neibors) {//它的邻居节点
+					//TODO:计算i-30天有几天沙尘暴
+					if (i + map[j].dis > MAX_STEP)//剪枝，在当前节点必须预留足够的时间到终点
+						break;
+					if (neibor != dest) {//到终点游戏结束，考虑特例，起点....---终点-矿山
+						//行走，从邻居节点走过来
+						if (weather[i] != SAND) {
+							Resource newres1 = dpmap[i - 1][neibor] + resource[weather[i]] * 2;
+							if (newres1.water*watersz + newres1.food*foodsz < MAXPAC + supply[2]) {//保证背包装的下
+								if (mincmp(dpmap[i][j], newres1, dpmap[i][j]) == false) {
+									haschange = true;
+									Path[i][j] = neibor;
+								}
+							}
+						}
+						//cout << 123 << endl;
+
+						//停留,分为停留下来挖矿，主动停留（在普通地点，或者在矿山但是不挖矿），以及沙尘暴被动停留,后面的可以合并
+						if (map[j].state == MINE && dpmap[i - 1][j].food < MAXCOST) {
+							Resource newres1 = dpmap[i - 1][j] + resource[weather[i]] * 3 + digmine;//停留此地挖矿
+							if (newres1.water*watersz + newres1.food*foodsz < MAXPAC + supply[2]) {//保证背包装的下
+								if (mincmp(dpmap[i][j], newres1, dpmap[i][j]) == false) {
+									haschange = true;
+									Path[i][j] = j;
+								}
+							}
+						}
+						Resource newres2 = dpmap[i - 1][j] + resource[weather[i]];//无挖矿的停留
+						if (newres2.water*watersz + newres2.food*foodsz < MAXPAC + supply[2]) {//保证背包装的下
+							if (mincmp(dpmap[i][j], newres2, dpmap[i][j]) == false) {
+								haschange = true;
+								Path[i][j] = j;
+							}
+						}
+						//cout << 134 << endl;
+						//村庄补给
+						if (map[j].state == VIL) {
+							int newpri = 2 * (waterpri * supply[0] + foodpri * supply[1]);
+							if (supply[0] == 0 || newpri < supply[3]) {//第一次经过村庄;否则挑选花费少的
+								supply[0] = dpmap[i][j].water; supply[1] = dpmap[i][j].food;
+								supply[2] = watersz * supply[0] + supply[1] * foodsz;
+								supply[3] = newpri;
+							}
 						}
 					}
 				}
+
+				/*cout << "j=" << j << endl;*/
 			}
+			//cout <<"i="<< i << endl;
 
-			/*cout << "j=" << j << endl;*/
 		}
-		//cout <<"i="<< i << endl;
-		
+
 	}
-
-
 	//运行完后计算
 	return getres_set1(dpmap);
 }
@@ -159,10 +179,14 @@ int PROBLEM::set1_dp(int weather[], int dest) {
 int PROBLEM::getres_set1(Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2]) {
 	int dest = map.size() - 1;
 	Resource mincost(0,MAXCOST, MAXCOST);
+	int reachday = 0;
 	for (int i = 1; i <= MAX_STEP; i++) {
-		mincost = mincmp(mincost, dpmap[i][dest]);
+		mincmp(mincost, dpmap[i][dest],mincost);
+		if (mincost == dpmap[i][dest])
+			reachday = i;
 	}
 	if (mincost.water*watersz + mincost.food*foodsz < MAXPAC + supply[2]) {//保证背包装的下
+		check_path(reachday, map.size() - 1);
 		cout << "花费水，食物，赚到的钱" << mincost.water << "   " << mincost.food << "  " << mincost.money << endl;
 		if (mincost.water*watersz + mincost.food*foodsz < MAXPAC) {//不用村庄补给就能装下
 			int cost = mincost.water*waterpri + mincost.food*foodpri - mincost.money;
@@ -179,6 +203,17 @@ int PROBLEM::getres_set1(Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2]) {
 			return MYMONEY - buycost + mincost.money;
 
 		}
+	
 	}
 	return -1;//表示不能到达
+}
+
+void PROBLEM::check_path(int reachday,int dest) {
+	cout << "路径（倒序): " << dest << " ";
+	while (reachday > 0) {
+		cout << Path[reachday][dest] << " ";	
+		dest = Path[reachday][dest];
+		reachday--;
+	}
+	cout << endl;
 }

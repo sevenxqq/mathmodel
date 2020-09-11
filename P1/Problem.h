@@ -66,8 +66,13 @@ struct Resource {
 		water = tmp.water;
 		food = tmp.food;
 	}
+	bool operator == (Resource tmp) {
+		if (money == tmp.money && water == tmp.water && food == tmp.food)
+			return true;
+		return false;
+	}
 	
-
+	
 };
 
 
@@ -103,7 +108,7 @@ public:
 	int set1_dp(int weather[],int dest);
 	void init(Resource dpmap[MAX_STEP+2][MAX_SPOT+2]);
 	int getres_set1(Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2]);
-
+	void check_path(int day,int dest);
 
 };
 
