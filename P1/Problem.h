@@ -74,10 +74,13 @@ struct Resource {
 
 const int MAX_STEP = 30;//限制日期数
 const int MAX_SPOT = 50; //地图上最多的地点数
-const int MAXCOST = 2147483647;
+const int MAXCOST = 99999;
 const int waterpri = 5;
 const int foodpri = 10;
-
+const int watersz = 3;
+const int foodsz = 2;
+const int MAXPAC = 1200;
+const int MYMONEY = 10000;
 
 class PROBLEM
 {
@@ -97,8 +100,9 @@ public:
     vector <Resource> resource;
 	void construct_table();
 	void bfs_getDis();//计算其他点到终点的最短距离
-	void set1_dp(int weather[],int dest);
+	int set1_dp(int weather[],int dest);
 	void init(Resource dpmap[MAX_STEP+2][MAX_SPOT+2]);
+	int getres_set1(Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2]);
 
 
 };
