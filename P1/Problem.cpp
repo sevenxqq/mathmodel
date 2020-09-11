@@ -66,8 +66,10 @@ void PROBLEM::bfs_getDis() {
 
 }
 
-
-void PROBLEM::init(Resource dpmap[MAX_STEP+2][MAX_SPOT+3]) {
+/*
+	考虑最小消耗量,初始化为极大
+*/
+void PROBLEM::init(Resource dpmap[MAX_STEP+2][MAX_SPOT+2]) {
 	Resource initres(0, MAXCOST, MAXCOST);
 	for (int i = 0; i <= MAX_STEP; i++) {
 		for (int j = 0; j <= MAX_SPOT; j++) {
@@ -77,24 +79,39 @@ void PROBLEM::init(Resource dpmap[MAX_STEP+2][MAX_SPOT+3]) {
 }
 
 
+Resource mincmp(Resource a, Resource b) {//返回花销少的，已考虑赚的钱
+	int money1 = a.water * waterpri + a.food *foodpri - a.money;
+	int money2 = b.water * waterpri - b.food *foodpri - b.money;
+	if (money1 < money2)
+		return a;
+	return b;
+}
 
-void PROBLEM::set1_dp(int weather[]) {
-	Resource dpmap[MAX_STEP][MAX_SPOT];//考虑最小消耗量,初始化为极大
 
+void PROBLEM::set1_dp(int weather[],int dest) {
+	Resource dpmap[MAX_STEP+2][MAX_SPOT+2];
+	init(dpmap);
 	for (int i = 1; i <= MAX_STEP; i++) {//第i步
-		for (int j = 0; j < map.size(); j++) {
+		for (int j = 0; j < map.size(); j++) {//某个点
 
-			for (auto neibor : map[i].neibors) {
-				//从邻居节点走过来
-				if (weather[i]!=sand)
-					Resource newres1 = dpmap[i - 1][neibor] + 2 * resource[weather[i]];
-				//挖矿
+			for (auto neibor : map[i].neibors) {//它的邻居节点
+				if (neibor != dest) {//到终点游戏结束，考虑特例，起点....---终点-矿山
+					//行走，从邻居节点走过来
+					if (weather[i] != sand) {
+						Resource newres1 = dpmap[i - 1][neibor] + resource[weather[i]] * 2;
+						dpmap[i][j] = mincmp(dpmap[i][j], newres1);
+					}
 
-				//村庄
+					//村庄补给
 
-				//停留
-				Resource newres1 = dpmap[i - 1][j] + resource[weather[i]];//这里是拷贝？？？
-				
+					//停留,分为停留下来挖矿，主动停留（在普通地点，或者在矿山但是不挖矿），以及沙尘暴被动停留,后面的可以合并
+					if (map[j].state == MINE) {
+						Resource newres1 = dpmap[i - 1][j] + resource[weather[i]] * 3 + digmine;//停留此地挖矿
+						dpmap[i][j] = mincmp(dpmap[i][j], newres1);
+					}
+					Resource newres2 = dpmap[i - 1][j] + resource[weather[i]];//无挖矿的停留
+					dpmap[i][j] = mincmp(dpmap[i][j], newres2);
+				}
 			}
 		}
 	}

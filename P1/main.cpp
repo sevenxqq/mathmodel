@@ -38,6 +38,8 @@ int main() {
 	set1.construct_table();
 	TEST smalltest;
 	smalltest.test_consgraph(set1);
+	int weather[35] = {}
+
 	system("pause");
 	return 0;
 }
