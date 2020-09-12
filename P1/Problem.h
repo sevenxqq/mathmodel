@@ -114,6 +114,7 @@ public:
 	void init();
 	int getres_set1();
 	void check_path(int day,int dest);
+	int check_vil(int reachday, int dest);
 
 };
 

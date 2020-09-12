@@ -115,27 +115,27 @@ int PROBLEM::set1_dp(int weather[], int dest) {
 	while (haschange) {
 		haschange = false;
 		for (int i = 1; i <= MAX_STEP; i++) {//第i步
-			for (int j = 2; j < map.size(); j++) {//某个点
+			for (int j = 1; j < map.size(); j++) {//某个点
 
-				for (auto neibor : map[j].neibors) {//它的邻居节点
+				for (auto neibor : map[j].neibors) {//走到下一步邻居节点
 					//TODO:计算i-30天有几天沙尘暴
-					if (i + map[j].dis > MAX_STEP)//剪枝，在当前节点必须预留足够的时间到终点
+					if (i + map[neibor].dis > MAX_STEP)//剪枝，在当前节点必须预留足够的时间到终点
 						break;
-					if (neibor != dest) {//到终点游戏结束，考虑特例，起点....---终点-矿山
+					if (j != dest) {//到终点游戏结束
 						if (weather[i] != SAND) {
-							Resource newres1 = dpmap[i - 1][neibor] + resource[weather[i]] * 2;
-							if ((newres1.water*watersz + newres1.food*foodsz < MAXPAC + supply[2])
-								&& (newres1.water*waterpri + newres1.food*foodpri) < MYMONEY + dpmap[i - 1][j].money) {//保证背包装的下,钱也不能超过
-								if (mincmp(dpmap[i][j], newres1, dpmap[i][j]) == false) {
+							Resource newres1 = dpmap[i - 1][j] + resource[weather[i]] * 2;
+							if (   ( (newres1.water*watersz + newres1.food*foodsz) < (MAXPAC + check_vil(i, j) * supply[2]))
+								&& ( (newres1.water*waterpri + newres1.food*foodpri) < (MYMONEY + check_vil(i, j) * supply[3])) ){//保证背包装的下,钱也不能超过
+								if (mincmp(dpmap[i][neibor], newres1, dpmap[i][neibor]) == false) {
 									haschange = true;
-									Path[i][j] = neibor;
+									Path[i][neibor] = j;
 
 									//如果走过来是一个村庄，虚拟装满背包
-									if (map[j].state == VIL) {
-										int newpri = 2 * (waterpri * dpmap[i][j].water + foodpri * dpmap[i][j].food);
-										supply[0] = dpmap[i][j].water; supply[1] = dpmap[i][j].food;
+									if (map[neibor].state == VIL) {
+										int newpri = 2 * (waterpri * dpmap[i][neibor].water + foodpri * dpmap[i][neibor].food);
+										supply[0] = dpmap[i][neibor].water; supply[1] = dpmap[i][neibor].food;
 										supply[2] = supply[0] * watersz + supply[1] * foodsz;
-										supply[3] = newpri;
+										supply[3] = dpmap[i][neibor].money;
 
 									}
 								}
@@ -148,19 +148,19 @@ int PROBLEM::set1_dp(int weather[], int dest) {
 				//自身状态转换
 				//原地停留无其他行为
 				Resource newres2 = dpmap[i - 1][j] + resource[weather[i]];
-				if ( (newres2.water*watersz + newres2.food*foodsz < MAXPAC + supply[2])
-					&& (newres2.water*waterpri + newres2.food*foodpri) < MYMONEY + dpmap[i-1][j].money) {//保证背包装的下,钱也不能超过
+				if ( ((newres2.water*watersz + newres2.food*foodsz) < (MAXPAC + (check_vil(i, j) * supply[2])))
+					&& ((newres2.water*waterpri + newres2.food*foodpri) < (MYMONEY + (check_vil(i,j) * supply[3]))) ) {//保证背包装的下,钱也不能超过
 					if (mincmp(dpmap[i][j], newres2, dpmap[i][j]) == false) {
 						haschange = true;
 						Path[i][j] = j;
 						//如果是一个村庄，虚拟装满背包,不超过手头已经有的资金
-						if (map[j].state == VIL) {
+						/*if (map[j].state == VIL) {
 							int newpri = 2 * (waterpri * dpmap[i][j].water + foodpri * dpmap[i][j].food);
 							supply[0] = dpmap[i][j].water; supply[1] = dpmap[i][j].food;
 							supply[2] = supply[0] * watersz + supply[1] * foodsz;
-							supply[3] = newpri;
+							supply[3] = dpmap[i][j].money;;
 
-						}
+						}*/
 					}
 				}
 
@@ -169,8 +169,8 @@ int PROBLEM::set1_dp(int weather[], int dest) {
 				if (map[j].state == MINE && dpmap[i - 1][j].food < MAXCOST) {
 					Resource newres1 = dpmap[i - 1][j] + resource[weather[i]] * 3 + digmine;
 					//cout << dpmap[i - 1][j].food << " " << resource[weather[i]].food * 3 << " " << newres1.food << endl;
-					if ((newres1.water*watersz + newres1.food*foodsz < MAXPAC + supply[2])
-						&& (newres1.water*waterpri + newres1.food*foodpri) < MYMONEY + dpmap[i - 1][j].money) {//保证背包装的下,钱也不能超过
+					if ( ((newres1.water*watersz + newres1.food*foodsz) < (MAXPAC + check_vil(i, j) * supply[2]))
+						&& ( (newres1.water*waterpri + newres1.food*foodpri)) < (MYMONEY + check_vil(i, j) * supply[3])) {//保证背包装的下,钱也不能超过
 						if (mincmp(dpmap[i][j], newres1, dpmap[i][j]) == false) {
 							haschange = true;
 							Path[i][j] = j;
@@ -237,4 +237,15 @@ void PROBLEM::check_path(int reachday, int dest) {
 		reachday--;
 	}
 	cout << endl;
+}
+
+int PROBLEM::check_vil(int reachday, int dest) {
+
+	while (reachday > 0) {
+		if (dest == VIL)
+			return 1;
+		dest = Path[reachday][dest];
+		reachday--;
+	}
+	return 0;
 }

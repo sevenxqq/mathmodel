@@ -43,7 +43,7 @@ int main() {
 
 	//第一题的main
 
-	PROBLEM set1("SET1.txt");
+	PROBLEM set1("SET2.txt");
 	set1.construct_table();
 	set1.bfs_getDis();
 	/*TEST smalltest;
@@ -64,4 +64,9 @@ int main() {
 
 	system("pause");
 	return 0;
+
+	
+
+
 }
+
