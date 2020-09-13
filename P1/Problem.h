@@ -9,6 +9,16 @@ using namespace std;
 
 */
 
+const int MAX_STEP = 30;//限制日期数
+const int MAX_SPOT = 65; //地图上最多的地点数
+const int MAXCOST = 2000;
+const int waterpri = 5;
+const int foodpri = 10;
+const int watersz = 3;
+const int foodsz = 2;
+const int MAXPAC = 1200;
+const int MYMONEY = 10000;
+
 enum {
 	//地区类型
 	ORD = 0,//普通地点
@@ -82,21 +92,14 @@ struct Resource {
 
 
 
-const int MAX_STEP = 30;//限制日期数
-const int MAX_SPOT = 50; //地图上最多的地点数
-const int MAXCOST = 99999;
-const int waterpri = 5;
-const int foodpri = 10;
-const int watersz = 3;
-const int foodsz = 2;
-const int MAXPAC = 1200;
-const int MYMONEY = 10000;
+
 
 class PROBLEM
 {
 protected:
 
 	vector<graph> map;
+	Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2];
 	Resource package;
 	string filename;
 	
@@ -107,6 +110,7 @@ public:
 		vector<graph>().swap(map);//释放vector内存空间
 	}
 	friend class TEST;
+	friend class Sol2;
     vector <Resource> resource;
 	void construct_table();
 	void bfs_getDis();//计算其他点到终点的最短距离
@@ -118,3 +122,19 @@ public:
 
 };
 
+class Sol2 {
+	
+private:
+	//int R[30];//记录每个点的分值
+	int psunny = 0.45;
+	int phype = 0.45;
+	int psand = 0.1;
+	
+protected:
+
+public:
+	void init();
+	void get_R();
+	void get_Q(int weather[],PROBLEM set4);
+	void judge_state(int weather,PROBLEM set4);
+};

@@ -7,7 +7,7 @@ Resource sandstorm(0, 10, 10);
 Resource digmine(1000, 0, 0);
 
 int supply[4];//水量，食物量，增加的容量，花费的钱币
-Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2];
+
 int Path[MAX_STEP + 2][MAX_SPOT + 2];
 /*
 	从文件中读入并建图
@@ -39,7 +39,7 @@ void PROBLEM::construct_table() {
 
 	}
 	infile1.close();
-
+	bfs_getDis();
 }
 
 /*
@@ -136,11 +136,12 @@ int PROBLEM::set1_dp(int weather[], int dest) {
 										cout << "第"<< i<<" 天"<<  "i reach dest from" << j << endl;*/
 										//如果走过来是一个村庄，虚拟装满背包
 									if (map[neibor].state == VIL) {
-										int newpri = 2 * (waterpri * dpmap[i][neibor].water + foodpri * dpmap[i][neibor].food);
-										supply[0] = dpmap[i][neibor].water; supply[1] = dpmap[i][neibor].food;
-										supply[2] = supply[0] * watersz + supply[1] * foodsz;
-										supply[3] = dpmap[i][neibor].money;
-
+										if (supply[2]==0||supply[0] * watersz + supply[1] * foodsz < supply[2]) {//补给少的那份
+											int newpri = 2 * (waterpri * dpmap[i][neibor].water + foodpri * dpmap[i][neibor].food);
+											supply[0] = dpmap[i][neibor].water; supply[1] = dpmap[i][neibor].food;
+											supply[2] = supply[0] * watersz + supply[1] * foodsz;
+											supply[3] = dpmap[i][neibor].money;
+										}
 									}
 								}
 							}
@@ -151,7 +152,7 @@ int PROBLEM::set1_dp(int weather[], int dest) {
 
 					//自身状态转换
 					//原地停留无其他行为
-					if (j != dest && j != MINE ) {//除去矿山外没有必要主动停留,所以只要考虑沙尘暴无法走动
+					if (j != dest && map[j].state != MINE ) {//除去矿山外没有必要主动停留,所以只要考虑沙尘暴无法走动
 						Resource newres2 = dpmap[i - 1][j] + resource[weather[i]];
 						int newsize = newres2.water*watersz + newres2.food*foodsz;
 						int newpri = newres2.water*waterpri + newres2.food*foodpri;
@@ -163,9 +164,11 @@ int PROBLEM::set1_dp(int weather[], int dest) {
 									haschange = true;
 									Path[i][j] = j;
 									if (map[j].state == VIL) {
-										supply[0] = dpmap[i][j].water; supply[1] = dpmap[i][j].food;
-													supply[2] = supply[0] * watersz + supply[1] * foodsz;
-												supply[3] = dpmap[i][j].money;
+										if (supply[2] == 0 || supply[0] * watersz + supply[1] * foodsz < supply[2]) {//补给少的那份
+											supply[0] = dpmap[i][j].water; supply[1] = dpmap[i][j].food;
+											supply[2] = supply[0] * watersz + supply[1] * foodsz;
+											supply[3] = dpmap[i][j].money;
+										}
 									}
 								}
 							}
@@ -227,7 +230,8 @@ int PROBLEM::getres_set1() {
 		cout << i<< "  " << dpmap[i][dest].food <<"  "<<  dpmap[i][dest].water <<"  "<<  dpmap[i][dest].money << endl;
 		
 	}
-	if (mincost.water*watersz + mincost.food*foodsz < MAXPAC + check_vil(reachday,dest) * supply[2]) {//保证背包装的下
+	int pass_vil = check_vil(reachday, dest);
+	if (mincost.water*watersz + mincost.food*foodsz < MAXPAC +  pass_vil * supply[2]) {//保证背包装的下
 		check_path(reachday, map.size() - 1);
 		cout << "花费水，食物，赚到的钱" << mincost.water << "   " << mincost.food << "  " << mincost.money << endl;
 		if (mincost.water*watersz + mincost.food*foodsz < MAXPAC) {//不用村庄补给就能装下
