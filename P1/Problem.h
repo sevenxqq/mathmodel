@@ -109,7 +109,7 @@ public:
 	~PROBLEM(){
 		vector<graph>().swap(map);//释放vector内存空间
 	}
-	friend class TEST;
+	friend class TEST;//方便测试类调用
 	friend class Sol2;
     vector <Resource> resource;
 	void construct_table();
