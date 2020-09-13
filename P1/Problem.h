@@ -98,10 +98,10 @@ class PROBLEM
 {
 protected:
 
-	vector<graph> map;
-	Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2];
-	Resource package;
-	string filename;
+	vector<graph> map;//游戏地图
+	Resource dpmap[MAX_STEP + 2][MAX_SPOT + 2];//动态规划的记录
+	Resource package;//背包
+	string filename;//输入文件名来建立相应游戏地图
 	
 public:
 	PROBLEM() {}
@@ -114,27 +114,27 @@ public:
     vector <Resource> resource;
 	void construct_table();
 	void bfs_getDis();//计算其他点到终点的最短距离
-	int set1_dp(int weather[],int dest);
-	void init();
-	int getres_set1();
-	void check_path(int day,int dest);
-	int check_vil(int reachday, int dest);
+	int set1_dp(int weather[],int dest);//动态规划寻找路径
+	void init();//一些初始化操作
+	int getres_set1();//动态规划之后计算结果
+	void check_path(int day,int dest);//打印路径
+	int check_vil(int reachday, int dest);//判断路径上是否经过村庄
 
 };
 
 class Sol2 {
 	
 private:
-	//int R[30];//记录每个点的分值
-	int psunny = 0.45;
-	int phype = 0.45;
-	int psand = 0.1;
+	//天气概率参数，可以更改以获得其他情况
+	int psunny = 0.45;//晴天概率
+	int phype = 0.45;//高温概率
+	int psand = 0.1;//沙尘暴概率
 	
 protected:
 
 public:
 	void init();
-	void get_R();
-	void get_Q(int weather[],PROBLEM set4);
-	void judge_state(int weather,PROBLEM set4);
+	void get_R();//计算基础奖励
+	void get_Q(int weather[],PROBLEM set4);//学习：综合局部收益和经验值
+	int judge_state(int weather,PROBLEM set4,int i,int j);//用于决策树搜索，计算后续决策的收益
 };

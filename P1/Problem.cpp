@@ -104,7 +104,7 @@ bool mincmp(Resource a, Resource b) {
 }
 
 /*
-	第一题，动态规划(优化：带剪枝
+	第一题，动态规划(优化：带剪枝）
 */
 
 int PROBLEM::set1_dp(int weather[], int dest) {
@@ -117,13 +117,11 @@ int PROBLEM::set1_dp(int weather[], int dest) {
 		haschange = false;
 		for (int i = 1; i <= MAX_STEP; i++) {//第i步
 			for (int j = 1; j < dest; j++) {//某个点
-
-
-				if (dpmap[i - 1][j].food < MAXCOST) {//判断是否是到了j点
+				if (dpmap[i - 1][j].food < MAXCOST) {//剪枝：判断是否到了j点，带MAXCOST的可以不予计算
 					for (auto neibor : map[j].neibors) {//走到下一步邻居节点
 						//TODO:计算i-30天有几天沙尘暴
-						//if (i + map[neibor].dis > MAX_STEP)//剪枝，在当前节点必须预留足够的时间到终点
-						//	break;
+						if (i + map[neibor].dis > MAX_STEP)//剪枝，在当前节点必须预留足够的时间到终点，时间不够的话可以不予考虑
+							break;
 						if (j != dest && weather[i] != SAND) {//到终点游戏结束
 							Resource newres1 = dpmap[i - 1][j] + resource[weather[i]] * 2;
 							if (((newres1.water*watersz + newres1.food*foodsz) < (MAXPAC + check_vil(i, neibor) * supply[2]))
