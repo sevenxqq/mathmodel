@@ -11,12 +11,15 @@ Resource stay_mine;
 int basic_score[] = { -minscore,	-2000, 2 ,3,-2000,5, 6,-2000,4, 4, //minscore is an impl
 								    -2000,1,2,2000,4,5,2000 ,3,3,
 									-2000,1 ,2,2000,4,5 ,2000,3,3 };
-int R[30][30][30];
+int R[30][30][30];//对于set4,实际是27^3=19683种状态
+int Q[MAX_STEP+2][MAX_SPOT+2];//记录第i天j地的分值
 
 int dpscore[MAX_STEP + 2][MAX_SPOT + 2];
 int Path[MAX_STEP + 2][MAX_SPOT + 2];
 const int minscore = -10000;
 const int ori3_psum = 1;
+
+
 void Sol2::init() {
 	Resource walk_val = sunny * 2 * psunny + hype * 2 * phype;
 	Resource stay_val = sandstorm * psand;
@@ -48,7 +51,7 @@ void Sol2::get_R() {
 					p3 = phype;
 				else
 					p3 = psand;
-				R[i][j][k] = basic_score[i] + p2 * basic_score[j] + p2 * p3 *basic_score[k];
+				R[i][j][k] = p1 * basic_score[i] + p1 * p2 * basic_score[j] + p1 * p2 * p3 *basic_score[k];
 			}
 		}
 	}
@@ -64,3 +67,15 @@ void Sol2::get_R() {
 }
 
 
+void Sol2::get_Q() {
+	bool has_change = true;
+	while (has_change)//未收敛
+	{
+		for (int i = 1; i <= MAX_STEP; i++) {
+			for (int j = 1; j <= MAX_SPOT; j++) {
+				//判断step1的状态
+			}
+		}
+	}
+
+}
